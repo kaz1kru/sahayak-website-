@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sahayak Portal — Inclusive Government Digital Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    html { font-size: 16px; scroll-behavior: smooth; }
+    html.large-text { font-size: 19.5px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f7fa;
+      color: #0f172a;
+      padding-bottom: 110px;
+    }
+    h1, h2, h3, .font-display { font-family: 'Space Grotesk', sans-serif; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #d97706; outline-offset: 2px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Civic Accent Strip -->
+  <div class="h-2 w-full bg-gradient-to-r from-[#ea580c] via-white to-[#059669]"></div>
+
+  <!-- Top Accessibility Header -->
+  <header class="bg-[#0f172a] text-white shadow-lg sticky top-0 z-40 border-b-4 border-[#059669]">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="resetToHome()" role="button" tabindex="0">
+        <div class="w-12 h-12 rounded-2xl bg-[#059669] flex items-center justify-center text-white text-2xl shadow-md shrink-0">
+          <i class="fa-solid fa-hand-holding-heart"></i>
+        </div>
+        <div>
+          <h1 id="app-title" class="text-xl sm:text-2xl font-bold tracking-tight text-white leading-tight">Sahayak Portal</h1>
+          <p id="app-subtitle" class="text-xs sm:text-sm text-slate-300">Simple Government Services for Everyone</p>
+        </div>
+      </div>
+
+      <!-- Accessibility Controls -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3" role="toolbar">
+        <div class="inline-flex rounded-xl bg-slate-800 p-1 border border-slate-700">
+          <button type="button" onclick="setLang('en')" id="btn-en" class="lang-btn px-3 py-2 rounded-lg text-sm font-bold bg-[#059669] text-white transition">English</button>
+          <button type="button" onclick="setLang('hi')" id="btn-hi" class="lang-btn px-3 py-2 rounded-lg text-sm font-bold text-slate-200 hover:bg-slate-700 transition">हिंदी</button>
+          <button type="button" onclick="setLang('mr')" id="btn-mr" class="lang-btn px-3 py-2 rounded-lg text-sm font-bold text-slate-200 hover:bg-slate-700 transition">मराठी</button>
+        </div>
+
+        <button type="button" onclick="toggleFontSize()" id="btn-font" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 text-white font-bold text-sm flex items-center gap-2 transition">
+          <i class="fa-solid fa-text-height text-amber-400"></i>
+          <span id="lbl-bigger-text">Bigger Text</span>
+        </button>
+
+        <button type="button" onclick="speakCurrentScreen()" id="btn-voice" class="px-4 py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-sm flex items-center gap-2 shadow-md transition">
+          <i class="fa-solid fa-volume-high"></i>
+          <span id="lbl-listen">Listen</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Non-blocking Toast Banner -->
+  <div id="status-toast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] bg-[#0f172a] text-white border-2 border-[#059669] rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-3">
+    <i class="fa-solid fa-circle-info text-emerald-400 text-xl shrink-0"></i>
+    <p id="toast-message" class="text-sm sm:text-base font-medium leading-snug"></p>
+  </div>
+
+  <!-- Main Workspace -->
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6 sm:py-10">
+
+    <!-- Welcome Hero Banner -->
+    <section id="home-banner" class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div class="space-y-2 max-w-2xl">
+        <span id="badge-reassurance" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs sm:text-sm font-bold">
+          <i class="fa-solid fa-shield-halved text-emerald-600"></i> 100% Safe • 5-Min OTP Timer • Step-by-Step Voice Help
+        </span>
+        <h2 id="welcome-heading" class="text-2xl sm:text-4xl font-bold text-slate-900">What would you like to do today?</h2>
+        <p id="welcome-desc" class="text-base sm:text-lg text-slate-600">Tap any large service card below. Voice instructions and guided steps are ready in your language.</p>
+      </div>
+      <button type="button" onclick="openHelpModal('video')" class="w-full md:w-auto px-5 py-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border-2 border-[#059669] text-[#065f46] font-bold text-base flex items-center justify-center gap-3 transition shrink-0">
+        <i class="fa-solid fa-circle-play text-2xl text-[#059669]"></i>
+        <span id="lbl-watch-guide">Watch 1-Min Video Guide</span>
+      </button>
+    </section>
+
+    <!-- Guided 2-Step Task Flow -->
+    <section id="guided-flow" class="hidden bg-white rounded-3xl border-4 border-[#059669] shadow-xl p-6 sm:p-10 mb-10">
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b-2 border-slate-200 mb-8">
+        <div>
+          <span id="step-badge" class="inline-block px-3.5 py-1.5 rounded-xl bg-amber-100 text-amber-900 font-bold text-sm mb-2">
+            Step 1 of 2 — Enter Mobile Number
+          </span>
+          <h2 id="flow-service-title" class="text-2xl sm:text-3xl font-bold text-slate-900">Aadhaar Card Services</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="speakStepInstruction()" class="px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm sm:text-base flex items-center gap-2 transition">
+            <i class="fa-solid fa-volume-high"></i> <span id="lbl-step-listen">Read Step</span>
+          </button>
+          <button type="button" onclick="resetToHome()" class="px-4 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-900 font-bold text-sm sm:text-base flex items-center gap-2 transition">
+            <i class="fa-solid fa-arrow-left"></i> <span id="lbl-back">Go Back</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 1: Mobile Input + Large Keypad -->
+      <div id="step-1-box" class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div class="space-y-5">
+          <label for="mobile-input" id="lbl-mobile-prompt" class="block text-xl sm:text-2xl font-bold text-slate-900">
+            Enter your 10-digit mobile number linked to Aadhaar:
+          </label>
+          <input id="mobile-input" type="tel" maxlength="10" placeholder="98765 43210" class="w-full text-2xl sm:text-3xl font-bold tracking-widest px-5 py-4 rounded-2xl border-4 border-slate-300 focus:border-[#059669] bg-slate-50 text-slate-900">
+          <p id="lbl-mobile-hint" class="text-base text-slate-600 flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-[#059669]"></i> We will send a 6-digit SMS code with a relaxed 5-minute timer.
+          </p>
+          <button type="button" onclick="goToStep2()" id="btn-send-otp" class="w-full py-5 rounded-2xl bg-[#059669] hover:bg-[#047857] text-white font-bold text-xl shadow-lg flex items-center justify-center gap-3 transition">
+            <span id="lbl-send-otp">Send OTP Code</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="bg-slate-100 p-5 rounded-2xl border-2 border-slate-200">
+          <p id="lbl-keypad-title" class="text-sm font-bold uppercase tracking-wider text-slate-600 mb-3 text-center">Easy Large Number Pad</p>
+          <div class="grid grid-cols-3 gap-3">
+            <button type="button" onclick="appendDigit('mobile-input','1')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">1</button>
+            <button type="button" onclick="appendDigit('mobile-input','2')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">2</button>
+            <button type="button" onclick="appendDigit('mobile-input','3')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">3</button>
+            <button type="button" onclick="appendDigit('mobile-input','4')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">4</button>
+            <button type="button" onclick="appendDigit('mobile-input','5')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">5</button>
+            <button type="button" onclick="appendDigit('mobile-input','6')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">6</button>
+            <button type="button" onclick="appendDigit('mobile-input','7')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">7</button>
+            <button type="button" onclick="appendDigit('mobile-input','8')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">8</button>
+            <button type="button" onclick="appendDigit('mobile-input','9')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">9</button>
+            <button type="button" onclick="clearInput('mobile-input')" class="py-4 bg-rose-100 hover:bg-rose-200 text-rose-900 rounded-xl text-lg font-bold border-2 border-rose-300">Clear</button>
+            <button type="button" onclick="appendDigit('mobile-input','0')" class="py-4 bg-white hover:bg-emerald-50 rounded-xl text-2xl font-bold border-2 border-slate-300 shadow-sm">0</button>
+            <button type="button" onclick="backspaceInput('mobile-input')" class="py-4 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xl font-bold border-2 border-amber-300"><i class="fa-solid fa-delete-left"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Extended 5-Minute OTP Verification -->
+      <div id="step-2-box" class="hidden space-y-6 max-w-2xl mx-auto">
+        <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-5 flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-message text-2xl text-[#059669]"></i>
+            <div>
+              <p id="lbl-otp-sent" class="font-bold text-slate-900 text-lg">OTP sent to +91 <span id="display-mobile">9876543210</span></p>
+              <p class="text-sm text-slate-600">Demo code: <b>123456</b> (or any 6 digits)</p>
+            </div>
+          </div>
+          <div class="px-4 py-2 rounded-xl bg-white border-2 border-emerald-400 font-bold text-[#065f46] text-base">
+            <i class="fa-regular fa-clock"></i> <span id="otp-timer">05:00</span>
+          </div>
+        </div>
+
+        <label for="otp-input" id="lbl-otp-prompt" class="block text-xl sm:text-2xl font-bold text-slate-900">
+          Type the 6-digit code from your SMS message:
+        </label>
+        <input id="otp-input" type="tel" maxlength="6" placeholder="• • • • • •" class="w-full text-center text-3xl font-bold tracking-[0.5em] px-5 py-4 rounded-2xl border-4 border-slate-300 focus:border-[#059669] bg-slate-50">
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button type="button" onclick="completeTask()" class="flex-1 py-5 rounded-2xl bg-[#059669] hover:bg-[#047857] text-white font-bold text-xl shadow-lg flex items-center justify-center gap-3 transition">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="lbl-verify-btn">Verify &amp; Complete Task</span>
+          </button>
+          <button type="button" onclick="resendOtp()" class="px-6 py-5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-900 font-bold text-lg transition">
+            <span id="lbl-resend-btn">Resend OTP</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Success Screen -->
+      <div id="step-3-box" class="hidden text-center py-8 space-y-6 max-w-xl mx-auto">
+        <div class="w-24 h-24 rounded-full bg-emerald-100 text-[#059669] flex items-center justify-center text-5xl mx-auto shadow-inner">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h3 id="lbl-success-title" class="text-3xl sm:text-4xl font-bold text-slate-900">Task Completed Successfully!</h3>
+        <p id="lbl-success-desc" class="text-lg sm:text-xl text-slate-600">
+          Your request has been verified and processed safely without any errors.
+        </p>
+        <div class="bg-slate-100 rounded-2xl p-5 border border-slate-300 text-left space-y-2">
+          <p class="text-sm font-bold text-slate-500 uppercase">Reference Receipt</p>
+          <p class="text-lg font-bold text-slate-900" id="receipt-service">Service: Aadhaar Update</p>
+          <p class="text-base text-slate-700">Reference ID: <span class="font-mono font-bold text-[#059669]">SHK-2026-8841</span></p>
+        </div>
+        <button type="button" onclick="resetToHome()" class="w-full py-5 rounded-2xl bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-xl shadow-lg transition">
+          <span id="lbl-done-home">Return to All Services</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 4 Large Accessible Service Cards -->
+    <section id="services-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+      <button type="button" onclick="startService('aadhaar')" class="group text-left bg-white hover:bg-emerald-50/60 rounded-3xl p-7 sm:p-8 border-4 border-slate-200 hover:border-[#059669] shadow-sm hover:shadow-xl transition flex items-start gap-6">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-orange-100 text-[#ea580c] flex items-center justify-center text-3xl sm:text-4xl shrink-0 group-hover:scale-105 transition">
+          <i class="fa-solid fa-id-card"></i>
+        </div>
+        <div class="space-y-2">
+          <h3 id="card1-title" class="text-2xl sm:text-3xl font-bold text-slate-900">Aadhaar Card Services</h3>
+          <p id="card1-desc" class="text-base sm:text-lg text-slate-600">Update home address, check status, or download e-Aadhaar card easily.</p>
+          <span id="card1-cta" class="inline-flex items-center gap-2 text-[#059669] font-bold text-lg pt-1">
+            Tap to Start <i class="fa-solid fa-arrow-right"></i>
+          </span>
+        </div>
+      </button>
+
+      <button type="button" onclick="startService('digilocker')" class="group text-left bg-white hover:bg-emerald-50/60 rounded-3xl p-7 sm:p-8 border-4 border-slate-200 hover:border-[#059669] shadow-sm hover:shadow-xl transition flex items-start gap-6">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-100 text-[#059669] flex items-center justify-center text-3xl sm:text-4xl shrink-0 group-hover:scale-105 transition">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <div class="space-y-2">
+          <h3 id="card2-title" class="text-2xl sm:text-3xl font-bold text-slate-900">DigiLocker Documents</h3>
+          <p id="card2-desc" class="text-base sm:text-lg text-slate-600">Download driving license, mark sheets, and official certificates safely.</p>
+          <span id="card2-cta" class="inline-flex items-center gap-2 text-[#059669] font-bold text-lg pt-1">
+            Tap to Start <i class="fa-solid fa-arrow-right"></i>
+          </span>
+        </div>
+      </button>
+
+      <button type="button" onclick="startService('irctc')" class="group text-left bg-white hover:bg-emerald-50/60 rounded-3xl p-7 sm:p-8 border-4 border-slate-200 hover:border-[#059669] shadow-sm hover:shadow-xl transition flex items-start gap-6">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center text-3xl sm:text-4xl shrink-0 group-hover:scale-105 transition">
+          <i class="fa-solid fa-train"></i>
+        </div>
+        <div class="space-y-2">
+          <h3 id="card3-title" class="text-2xl sm:text-3xl font-bold text-slate-900">IRCTC Train Tickets</h3>
+          <p id="card3-desc" class="text-base sm:text-lg text-slate-600">Book senior citizen quota rail tickets or check PNR status with zero clutter.</p>
+          <span id="card3-cta" class="inline-flex items-center gap-2 text-[#059669] font-bold text-lg pt-1">
+            Tap to Start <i class="fa-solid fa-arrow-right"></i>
+          </span>
+        </div>
+      </button>
+
+      <button type="button" onclick="startService('pan')" class="group text-left bg-white hover:bg-emerald-50/60 rounded-3xl p-7 sm:p-8 border-4 border-slate-200 hover:border-[#059669] shadow-sm hover:shadow-xl transition flex items-start gap-6">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-3xl sm:text-4xl shrink-0 group-hover:scale-105 transition">
+          <i class="fa-solid fa-address-card"></i>
+        </div>
+        <div class="space-y-2">
+          <h3 id="card4-title" class="text-2xl sm:text-3xl font-bold text-slate-900">PAN Card Services</h3>
+          <p id="card4-desc" class="text-base sm:text-lg text-slate-600">Verify PAN card details, link Aadhaar, or download e-PAN in two easy steps.</p>
+          <span id="card4-cta" class="inline-flex items-center gap-2 text-[#059669] font-bold text-lg pt-1">
+            Tap to Start <i class="fa-solid fa-arrow-right"></i>
+          </span>
+        </div>
+      </button>
+    </section>
+
+  </main>
+
+  <!-- Sticky Persistent Help & AI Assistant Bar -->
+  <div class="fixed bottom-0 inset-x-0 bg-white border-t-4 border-[#0f172a] shadow-2xl z-40 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-100 text-[#059669] flex items-center justify-center text-xl">
+          <i class="fa-solid fa-headset"></i>
+        </div>
+        <p id="lbl-sticky-help" class="font-bold text-slate-900 text-base sm:text-lg">Stuck or confused? Get instant step-by-step help.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="openHelpModal('chat')" class="px-5 py-3 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-bold text-base flex items-center gap-2 shadow transition">
+          <i class="fa-solid fa-robot"></i>
+          <span id="lbl-help-btn">Ask Sahayak Help</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help & Video Tutorial Modal -->
+  <div id="help-modal" class="hidden fixed inset-0 bg-slate-900/75 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 border-4 border-[#059669] shadow-2xl space-y-6">
+      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-4">
+        <h3 id="modal-title" class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-circle-question text-[#059669]"></i> Sahayak Assistant
+        </h3>
+        <button type="button" onclick="closeHelpModal()" class="w-10 h-10 rounded-xl bg-slate-200 hover:bg-slate-300 font-bold text-xl text-slate-900">✕</button>
+      </div>
+
+      <div id="modal-body-chat" class="space-y-4">
+        <p class="text-base sm:text-lg text-slate-700 font-medium">Tap a common question below for an instant answer:</p>
+        <div class="space-y-3">
+          <button type="button" onclick="showFaqAnswer('otp')" class="w-full text-left p-4 rounded-2xl bg-slate-100 hover:bg-emerald-50 border-2 border-slate-300 font-bold text-slate-900">
+            1. Why didn’t I receive my OTP SMS?
+          </button>
+          <button type="button" onclick="showFaqAnswer('docs')" class="w-full text-left p-4 rounded-2xl bg-slate-100 hover:bg-emerald-50 border-2 border-slate-300 font-bold text-slate-900">
+            2. Which documents do I need to keep ready?
+          </button>
+          <button type="button" onclick="showFaqAnswer('safe')" class="w-full text-left p-4 rounded-2xl bg-slate-100 hover:bg-emerald-50 border-2 border-slate-300 font-bold text-slate-900">
+            3. Is my personal data safe on Sahayak Portal?
+          </button>
+        </div>
+        <div id="faq-response" class="hidden p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-400 text-slate-900 text-base sm:text-lg font-medium"></div>
+      </div>
+
+      <div id="modal-body-video" class="hidden space-y-4">
+        <div class="bg-slate-900 rounded-2xl p-8 text-center text-white space-y-3">
+          <i class="fa-solid fa-circle-play text-6xl text-emerald-400"></i>
+          <p class="text-xl font-bold">1-Minute Visual Walkthrough</p>
+          <p class="text-slate-300 text-base">1. Pick your service card → 2. Type mobile number using the big keypad → 3. Enter 6-digit SMS code.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const translations = {
+      en: {
+        appTitle: "Sahayak Portal",
+        appSubtitle: "Simple Government Services for Everyone",
+        biggerText: "Bigger Text",
+        listen: "Listen",
+        welcomeHeading: "What would you like to do today?",
+        welcomeDesc: "Tap any large service card below. Voice instructions and guided steps are ready in your language.",
+        watchGuide: "Watch 1-Min Video Guide",
+        card1Title: "Aadhaar Card Services",
+        card1Desc: "Update home address, check status, or download e-Aadhaar card easily.",
+        card2Title: "DigiLocker Documents",
+        card2Desc: "Download driving license, mark sheets, and official certificates safely.",
+        card3Title: "IRCTC Train Tickets",
+        card3Desc: "Book senior citizen quota rail tickets or check PNR status with zero clutter.",
+        card4Title: "PAN Card Services",
+        card4Desc: "Verify PAN card details, link Aadhaar, or download e-PAN in two easy steps.",
+        cta: "Tap to Start",
+        stickyHelp: "Stuck or confused? Get instant step-by-step help.",
+        helpBtn: "Ask Sahayak Help",
+        voiceIntro: "Welcome to Sahayak Portal. Tap any large service card to begin. You can switch to Hindi or Marathi anytime at the top."
+      },
+      hi: {
+        appTitle: "सहायक पोर्टल",
+        appSubtitle: "सभी नागरिकों के लिए सरल सरकारी सेवाएं",
+        biggerText: "बड़ा अक्षर",
+        listen: "सुनें",
+        welcomeHeading: "आज आप कौन सी सेवा उपयोग करना चाहते हैं?",
+        welcomeDesc: "नीचे दिए गए किसी भी बड़े कार्ड को दबाएं। आपकी भाषा में आवाज और सरल निर्देश उपलब्ध हैं।",
+        watchGuide: "1-मिनट वीडियो गाइड देखें",
+        card1Title: "आधार कार्ड सेवाएं",
+        card1Desc: "घर का पता बदलें, स्थिति जांचें या ई-आधार आसानी से डाउनलोड करें।",
+        card2Title: "डिजिलॉकर दस्तावेज़",
+        card2Desc: "ड्राइविंग लाइसेंस, मार्कशीट और प्रमाण पत्र सुरक्षित रूप से डाउनलोड करें।",
+        card3Title: "IRCTC ट्रेन टिकट",
+        card3Desc: "वरिष्ठ नागरिक कोटा रेल टिकट बुक करें या PNR स्थिति जांचें।",
+        card4Title: "पैन कार्ड सेवाएं",
+        card4Desc: "पैन कार्ड विवरण जांचें, आधार लिंक करें या ई-पैन डाउनलोड करें।",
+        cta: "शुरू करने के लिए दबाएं",
+        stickyHelp: "कहीं अटक गए हैं? तुरंत सहायता प्राप्त करें।",
+        helpBtn: "सहायक मदद लें",
+        voiceIntro: "सहायक पोर्टल में आपका स्वागत है। शुरू करने के लिए नीचे दिए गए किसी भी बड़े कार्ड को दबाएं।"
+      },
+      mr: {
+        appTitle: "सहाय्यक पोर्टल",
+        appSubtitle: "सर्व नागरिकांसाठी सोप्या सरकारी सेवा",
+        biggerText: "मोठे अक्षर",
+        listen: "ऐका",
+        welcomeHeading: "आज तुम्हाला कोणती सेवा वापरायची आहे?",
+        welcomeDesc: "खालीलपैकी कोणत्याही मोठ्या कार्डवर स्पर्श करा. तुमच्या भाषेत आवाज आणि सोप्या सूचना उपलब्ध आहेत.",
+        watchGuide: "१-मिनिट व्हिडिओ मार्गदर्शक पहा",
+        card1Title: "आधार कार्ड सेवा",
+        card1Desc: "घरचा पत्ता बदला, स्थिती तपासा किंवा ई-आधार सहज डाउनलोड करा.",
+        card2Title: "डिजिलॉकर कागदपत्रे",
+        card2Desc: "ड्रायव्हिंग लायसन्स, गुणपत्रिका आणि प्रमाणपत्रे सुरक्षितपणे डाउनलोड करा.",
+        card3Title: "IRCTC रेल्वे तिकीट",
+        card3Desc: "ज्येष्ठ नागरिक कोटा रेल्वे तिकीट बुक करा किंवा PNR स्थिती तपासा.",
+        card4Title: "पॅन कार्ड सेवा",
+        card4Desc: "पॅन कार्ड तपशील तपासा, आधार लिंक करा किंवा ई-पॅन डाउनलोड करा.",
+        cta: "सुरू करण्यासाठी स्पर्श करा",
+        stickyHelp: "काही अडचण आली आहे का? त्वरित मदत मिळवा.",
+        helpBtn: "सहाय्यक मदत घ्या",
+        voiceIntro: "सहाय्यक पोर्टलमध्ये आपले स्वागत आहे. सुरू करण्यासाठी खालील कोणत्याही मोठ्या कार्डवर स्पर्श करा."
+      }
+    };
+
+    let currentLang = 'en';
+    let currentService = '';
+    let otpInterval = null;
+
+    function showToast(msg) {
+      const toast = document.getElementById('status-toast');
+      document.getElementById('toast-message').textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    function setLang(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('bg-[#059669]', 'text-white');
+        btn.classList.add('text-slate-200');
+      });
+      document.getElementById('btn-' + lang).classList.add('bg-[#059669]', 'text-white');
+
+      document.getElementById('app-title').textContent = t.appTitle;
+      document.getElementById('app-subtitle').textContent = t.appSubtitle;
+      document.getElementById('lbl-bigger-text').textContent = t.biggerText;
+      document.getElementById('lbl-listen').textContent = t.listen;
+      document.getElementById('welcome-heading').textContent = t.welcomeHeading;
+      document.getElementById('welcome-desc').textContent = t.welcomeDesc;
+      document.getElementById('lbl-watch-guide').textContent = t.watchGuide;
+      document.getElementById('card1-title').textContent = t.card1Title;
+      document.getElementById('card1-desc').textContent = t.card1Desc;
+      document.getElementById('card2-title').textContent = t.card2Title;
+      document.getElementById('card2-desc').textContent = t.card2Desc;
+      document.getElementById('card3-title').textContent = t.card3Title;
+      document.getElementById('card3-desc').textContent = t.card3Desc;
+      document.getElementById('card4-title').textContent = t.card4Title;
+      document.getElementById('card4-desc').textContent = t.card4Desc;
+      document.getElementById('lbl-sticky-help').textContent = t.stickyHelp;
+      document.getElementById('lbl-help-btn').textContent = t.helpBtn;
+      showToast("Language switched to " + lang.toUpperCase());
+    }
+
+    function toggleFontSize() {
+      document.documentElement.classList.toggle('large-text');
+      const isLarge = document.documentElement.classList.contains('large-text');
+      showToast(isLarge ? "Bigger Text Enabled (Senior Mode)" : "Standard Text Size Restored");
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = currentLang === 'hi' ? 'hi-IN' : currentLang === 'mr' ? 'mr-IN' : 'en-IN';
+        utter.rate = 0.92;
+        window.speechSynthesis.speak(utter);
+      }
+      showToast("Reading instructions aloud...");
+    }
+
+    function speakCurrentScreen() {
+      speakText(translations[currentLang].voiceIntro);
+    }
+
+    function speakStepInstruction() {
+      const step1Visible = !document.getElementById('step-1-box').classList.contains('hidden');
+      const msg = step1Visible
+        ? "Step 1: Type your 10 digit mobile number using the large number buttons, then press Send OTP Code."
+        : "Step 2: Check your phone SMS and enter the 6 digit code. You have 5 full minutes.";
+      speakText(msg);
+    }
+
+    function startService(serviceKey) {
+      const names = {
+        aadhaar: translations[currentLang].card1Title,
+        digilocker: translations[currentLang].card2Title,
+        irctc: translations[currentLang].card3Title,
+        pan: translations[currentLang].card4Title
+      };
+      currentService = names[serviceKey];
+      document.getElementById('flow-service-title').textContent = currentService;
+      document.getElementById('receipt-service').textContent = "Service: " + currentService;
+
+      document.getElementById('services-grid').classList.add('hidden');
+      document.getElementById('home-banner').classList.add('hidden');
+      document.getElementById('guided-flow').classList.remove('hidden');
+      document.getElementById('step-1-box').classList.remove('hidden');
+      document.getElementById('step-2-box').classList.add('hidden');
+      document.getElementById('step-3-box').classList.add('hidden');
+      document.getElementById('step-badge').textContent = "Step 1 of 2 — Enter Mobile Number";
+      document.getElementById('mobile-input').value = '';
+      document.getElementById('otp-input').value = '';
+    }
+
+    function resetToHome() {
+      clearInterval(otpInterval);
+      document.getElementById('guided-flow').classList.add('hidden');
+      document.getElementById('services-grid').classList.remove('hidden');
+      document.getElementById('home-banner').classList.remove('hidden');
+    }
+
+    function appendDigit(id, digit) {
+      const el = document.getElementById(id);
+      if (el.value.length < el.maxLength) el.value += digit;
+    }
+
+    function clearInput(id) {
+      document.getElementById(id).value = '';
+    }
+
+    function backspaceInput(id) {
+      const el = document.getElementById(id);
+      el.value = el.value.slice(0, -1);
+    }
+
+    function startOtpTimer() {
+      clearInterval(otpInterval);
+      let seconds = 300;
+      otpInterval = setInterval(() => {
+        seconds--;
+        const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        document.getElementById('otp-timer').textContent = `${m}:${s}`;
+        if (seconds <= 0) clearInterval(otpInterval);
+      }, 1000);
+    }
+
+    function goToStep2() {
+      const mobile = document.getElementById('mobile-input').value.trim();
+      if (mobile.length < 10) {
+        showToast("Please enter all 10 digits of your mobile number.");
+        return;
+      }
+      document.getElementById('display-mobile').textContent = mobile;
+      document.getElementById('step-1-box').classList.add('hidden');
+      document.getElementById('step-2-box').classList.remove('hidden');
+      document.getElementById('step-badge').textContent = "Step 2 of 2 — Verify SMS Code";
+      startOtpTimer();
+      showToast("6-digit OTP sent! You have 5 minutes.");
+    }
+
+    function resendOtp() {
+      startOtpTimer();
+      showToast("New OTP sent! Timer reset to 05:00.");
+    }
+
+    function completeTask() {
+      const otp = document.getElementById('otp-input').value.trim();
+      if (otp.length < 6) {
+        showToast("Please enter the 6-digit SMS code.");
+        return;
+      }
+      clearInterval(otpInterval);
+      document.getElementById('step-2-box').classList.add('hidden');
+      document.getElementById('step-3-box').classList.remove('hidden');
+      document.getElementById('step-badge').textContent = "Done — Verified";
+    }
+
+    function openHelpModal(mode) {
+      document.getElementById('help-modal').classList.remove('hidden');
+      document.getElementById('modal-body-chat').classList.toggle('hidden', mode !== 'chat');
+      document.getElementById('modal-body-video').classList.toggle('hidden', mode !== 'video');
+    }
+
+    function closeHelpModal() {
+      document.getElementById('help-modal').classList.add('hidden');
+    }
+
+    function showFaqAnswer(topic) {
+      const answers = {
+        otp: "Check your phone's SMS inbox. Unlike older websites that expire in 30 seconds, Sahayak gives you 5 full minutes—or tap 'Resend OTP' anytime.",
+        docs: "Keep your 12-digit Aadhaar number and registered mobile phone nearby. No physical uploads are needed for basic checks.",
+        safe: "Yes. Sahayak never stores your OTP or personal details and connects directly to official government verification gateways."
+      };
+      const box = document.getElementById('faq-response');
+      box.textContent = answers[topic];
+      box.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
